@@ -1,6 +1,6 @@
-# Hello_LLM (Python + C#)
+# Hello_LLM (Python + C# + R)
 
-A small “hello world” project that calls an OpenAI chat model from **two languages**—Python and C#—to learn the same concept from two angles: **how to authenticate, structure a request, send it, and read the response**.
+A small “hello world” project that calls an OpenAI chat model from **three languages**—Python, C#, and R—to learn the same concept from multiple angles: **how to authenticate, structure a request, send it, and read the response**.
 
 I built this as a hands-on way to understand the LLM API lifecycle (inputs → API call → outputs), and to compare how different ecosystems solve the same problems (dependency management, secrets, async, and SDK ergonomics).
 
@@ -8,16 +8,32 @@ I built this as a hands-on way to understand the LLM API lifecycle (inputs → A
 
 - **Python** (`python/p1_hello_llm.py`): loads an API key from `.env`, calls the Chat Completions API, prints the assistant’s reply.
 - **C#** (`csharp/p1_hello_llm/Program.cs`): loads an API key from **.NET User Secrets**, calls the OpenAI Chat client asynchronously, prints the reply.
+- **R** (`R/p1_hello_llm.R`): loads an API key from `.env`, makes a direct HTTP call to the Chat Completions API via `httr2`, prints the assistant’s reply.
 
 Both programs send the same prompt:
 
 > “Hello, how are you on this fine day?”
 
-## Why I did it (and why in two languages)
+## Why I did it (and why in three languages)
 
-- **Transferable understanding**: If I can do the same LLM call in Python and C#, I’m not memorizing syntax—I’m learning the underlying “shape” of the system.
+- **Transferable understanding**: If I can do the same LLM call in Python, C#, and R, I’m not memorizing syntax—I’m learning the underlying “shape” of the system.
 - **Ecosystem fluency**: Python is fast for iteration; C# is common in enterprise environments. Knowing both expands where I can apply LLM integrations.
 - **Practical engineering habits**: secrets handling, dependency management, and reproducible runs are as important as “it works once on my machine.”
+
+## Same workflow, three ecosystems
+
+No matter the language, the “shape” of the integration is the same:
+
+- **Supply**: load `OPENAI_API_KEY` securely
+- **Command**: build `messages` (the prompt + roles)
+- **Delivery**: send the HTTPS request (SDK or raw HTTP)
+- **Readback**: parse the response and extract assistant text
+
+Where they differ is mostly ergonomics:
+
+- **Python**: typically uses an SDK; often synchronous by default; fast iteration.
+- **C#**: strongly typed SDK usage; async-first (`await`); great for larger systems.
+- **R**: often closer to the metal (raw HTTP + JSON) unless you choose an R SDK; makes the underlying request/response very explicit.
 
 ## Diesel-tech analogies (how it clicked for me)
 
@@ -25,8 +41,10 @@ Thinking in diesel terms helped me map new software concepts to something physic
 
 - **API key = authorized fuel source**
   - If the key is missing, it’s like trying to run a high-pressure common-rail system with no clean fuel supply: nothing downstream matters until supply is correct.
-- **Client object = injection pump / rail controller**
-  - The SDK client is the component that *knows how* to build pressure (HTTP request), meter it (parameters/model), and deliver it reliably.
+- **SDK client = injection pump / rail controller**
+  - In Python/C#, the SDK client is the component that *knows how* to build pressure (HTTP request), meter it (model/parameters), and deliver it reliably.
+- **Raw HTTP (R) = bench testing the lines**
+  - R’s `httr2` version is like hooking up gauges and lines directly: you see headers, body, status codes, and JSON—nothing is hidden.
 - **Messages = injector command / timing map**
   - The prompt is your “command”: when you change it, you change what the engine does. Same hardware, different behavior.
 - **Response parsing = reading the gauges**
@@ -54,6 +72,8 @@ Hello_LLM/
     p1_hello_llm/
       Program.cs
       p1_hello_llm.csproj
+  R/
+    p1_hello_llm.R
   pyproject.toml
   .gitignore
 ```
@@ -104,10 +124,31 @@ Run the console app:
 dotnet run --project csharp/p1_hello_llm
 ```
 
+### 4) R run
+
+Install R dependencies (once):
+
+```r
+install.packages(c("dotenv", "httr2", "jsonlite"))
+```
+
+Run from the repo root (important so `.env` is found):
+
+```powershell
+cd D:\Kelvins_Projects\Hello_LLM
+& "C:\Program Files\R\R-4.5.3\bin\Rscript.exe" .\R\p1_hello_llm.R
+```
+
+Tip: if you add `C:\Program Files\R\R-4.5.3\bin` to your PATH, you can run:
+
+```powershell
+Rscript .\R\p1_hello_llm.R
+```
+
 ## Notes on security
 
 - **Do not store real keys in code**.
-- Keep keys in **User Secrets** (C#) or `.env` (Python) locally.
+- Keep keys in **User Secrets** (C#) or `.env` (Python/R) locally.
 - If a key is ever committed, treat it like contaminated fuel: **assume it’s compromised** and rotate it.
 
 ## Next steps (ideas)
